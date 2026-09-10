@@ -20,3 +20,22 @@ Imports functions directly from simple_rag.py:
 2. Retrieve: For each user prompt, vector similarity finds the most relevant chunk (top_k=1).
 3. Format & Generate: Retrieved text is injected into the prompt and passed to the generator function.
 4. Output: Formatted results show question, extracted context, and final grounded answer.
+
+==================================================
+RAG BEHAVIOR & GROUNDING EXPLANATION
+==================================================
+
+1. Why the LLM Does Not Search the Web
+- API vs. Web UI: Raw API calls (client.models.generate_content) act as pure text-in/text-out systems. Unlike web chat interfaces, raw API clients do not have search engines or browsing tools attached.
+- Closed Context Boundary: The LLM only processes its static pre-trained data and the exact context text passed into the prompt.
+
+2. Strict Grounding Guardrails
+- System Directive: Prompt explicitly states: "Answer the question using ONLY the provided context below..."
+- Anti-Hallucination: Prevents the model from using general knowledge or guessing when document context is missing.
+
+3. Execution Step Breakdown (e.g., Q6: Microservices)
+1. Query Vectorization: "Q6" embedding is calculated via SentenceTransformer.
+2. Similarity Search: Best vector match is pulled from knowledge.txt.
+3. Prompt Assembly: Context chunk is injected directly into the prompt template.
+4. LLM Verification: LLM checks if context contains the answer.
+5. Fallback Response: Since facts are missing in the document, it outputs "I cannot answer this based on the provided documents."
