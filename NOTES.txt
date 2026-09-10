@@ -1,0 +1,22 @@
+Manual RAG Pipeline Explanation
+
+1. Environment & API Setup
+- load_dotenv(override=True): Scans the local .env file and loads environment variables into memory, overriding any existing cached keys.
+- client = OpenAI(): Initializes the OpenAI client, automatically pulling OPENAI_API_KEY from the environment.
+
+2. Core Mechanics Integration
+Imports functions directly from simple_rag.py:
+- load_documents: Reads knowledge.txt into memory.
+- create_embeddings: Generates dense vector representations of text chunks using a local SentenceTransformer model (all-MiniLM-L6-v2).
+- retrieve: Performs vector cosine similarity calculations between user query embeddings and document embeddings to fetch top-matching text chunks.
+
+3. Strict Prompt Grounding
+- generate_answer(query, retrieved_context): Combines the user query and retrieved context into a strict prompt template.
+- Includes explicit guardrail instructions ("Answer using ONLY the provided context below...") to prevent LLM hallucinations.
+- Evaluates edge cases: if context is missing (e.g., questions outside the knowledge base like Java creator), it falls back cleanly to a controlled safety response.
+
+4. Pipeline Execution Sequence
+1. Load & Embed: Document dataset is ingested and embedded into vector space once at startup.
+2. Retrieve: For each user prompt, vector similarity finds the most relevant chunk (top_k=1).
+3. Format & Generate: Retrieved text is injected into the prompt and passed to the generator function.
+4. Output: Formatted results show question, extracted context, and final grounded answer.
