@@ -1,18 +1,18 @@
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
 
 from simple_rag import create_embeddings, load_documents, retrieve
 
-# 1. Force environment reload
+# 1. Load environment variables
 load_dotenv(override=True)
 
-# 2. Initialize OpenAI client
-client = OpenAI()
+# 2. Initialize Gemini Client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def generate_answer_with_llm(query: str, retrieved_context: list[str]) -> str:
-    """Formats prompt with retrieved context and fetches response from OpenAI LLM."""
+    """Formats prompt with retrieved context and fetches response from Gemini."""
     context_text = "\n".join(retrieved_context)
 
     prompt = f"""You are a grounded assistant. Answer the question using ONLY the provided context below.
@@ -24,13 +24,12 @@ Context:
 Question: {query}
 Answer:"""
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,  # Deterministic output
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=prompt,
     )
 
-    return response.choices[0].message.content.strip()
+    return response.text.strip()
 
 
 if __name__ == "__main__":
@@ -40,17 +39,18 @@ if __name__ == "__main__":
     docs = load_documents(file_name)
     model, doc_embeddings = create_embeddings(docs)
 
-    # Test prompts
+    # All 5 Test Questions
     test_questions = [
         "Q1: Who created Python?",
         "Q2: What is FastAPI?",
         "Q3: What does RAG stand for?",
         "Q4: What does LangChain provide?",
         "Q5: Who created Java?",
+        "Q6: What is microservice architecture?",
     ]
 
     print("\n" + "=" * 50)
-    print("ACTIVE LLM INTEGRATION TEST (OpenAI gpt-4o-mini)")
+    print("ACTIVE LLM INTEGRATION TEST (Google Gemini 3.6 Flash)")
     print("=" * 50)
 
     for q in test_questions:
